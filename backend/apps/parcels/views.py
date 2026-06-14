@@ -26,7 +26,8 @@ class ParcelViewSet(viewsets.ModelViewSet):
     def open(self, request):
         serializer = PickupCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        parcel = open_by_pickup_code(serializer.validated_data["pickup_code"])
+        operator = request.data.get("operator", "")
+        parcel = open_by_pickup_code(serializer.validated_data["pickup_code"], operator=operator)
         if not parcel:
             return Response(
                 {"success": False, "message": "取件码无效或快件不可取。"},

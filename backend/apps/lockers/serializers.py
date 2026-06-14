@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import LockerCell
+from .models import LockerCell, OpenAuditLog
 
 
 class LockerCellSerializer(serializers.ModelSerializer):
@@ -20,4 +20,25 @@ class LockerCellSerializer(serializers.ModelSerializer):
             "temperature",
             "last_opened_at",
             "updated_at",
+        ]
+
+
+class OpenAuditLogSerializer(serializers.ModelSerializer):
+    source_label = serializers.CharField(source="get_source_display", read_only=True)
+    locker_cell_code = serializers.CharField(source="locker_cell.code", read_only=True)
+    parcel_tracking_no = serializers.CharField(source="parcel.tracking_no", read_only=True, default=None)
+
+    class Meta:
+        model = OpenAuditLog
+        fields = [
+            "id",
+            "locker_cell",
+            "locker_cell_code",
+            "source",
+            "source_label",
+            "operator",
+            "parcel",
+            "parcel_tracking_no",
+            "opened_at",
+            "note",
         ]

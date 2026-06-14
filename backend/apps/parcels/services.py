@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from apps.lockers.models import LockerCell
+from apps.lockers.models import LockerCell, OpenAuditLog
 from apps.notifications.services import send_pickup_notification
 from .models import Parcel
 
@@ -45,7 +45,7 @@ def inbound_parcel(validated_data):
 
 
 @transaction.atomic
-def open_by_pickup_code(pickup_code):
+def open_by_pickup_code(pickup_code, operator=""):
     parcel = (
         Parcel.objects.select_for_update()
         .select_related("locker_cell")
@@ -64,4 +64,12 @@ def open_by_pickup_code(pickup_code):
     cell.status = LockerCell.Status.OPEN
     cell.last_opened_at = now
     cell.save(update_fields=["status", "last_opened_at", "updated_at"])
+
+    OpenAuditLog.objects.create(
+        locker_cell=cell,
+        source=OpenAuditLog.Source.PICKUP,
+        operator=operator,
+        parcel=parcel,
+    )
+
     return parcel

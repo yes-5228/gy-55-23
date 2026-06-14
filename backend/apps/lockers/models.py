@@ -26,3 +26,32 @@ class LockerCell(models.Model):
 
     def __str__(self):
         return f"{self.zone}-{self.code}"
+
+
+class OpenAuditLog(models.Model):
+    class Source(models.TextChoices):
+        PICKUP = "pickup", "取件开箱"
+        MANUAL = "manual", "人工开箱"
+
+    locker_cell = models.ForeignKey(
+        LockerCell,
+        on_delete=models.PROTECT,
+        related_name="open_audit_logs",
+    )
+    source = models.CharField(max_length=20, choices=Source.choices)
+    operator = models.CharField(max_length=100, blank=True)
+    parcel = models.ForeignKey(
+        "parcels.Parcel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="open_audit_logs",
+    )
+    opened_at = models.DateTimeField(auto_now_add=True)
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["-opened_at"]
+
+    def __str__(self):
+        return f"{self.locker_cell} - {self.get_source_display()} at {self.opened_at}"
